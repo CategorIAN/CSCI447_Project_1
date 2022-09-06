@@ -6,9 +6,8 @@ from SoyBean import SoyBean
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     I = Iris()
-    I.df.to_csv("iris_output.csv")
-    S = SoyBean()
-    S.df.to_csv("soybean-small_output.csv")
+    print(I.Q())
+    I.Q().to_csv("Q.csv")
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
