@@ -4,7 +4,7 @@ import numpy as np
 
 #function to find Missing data from dataset
 def findMissing(col_name, df):
-    print(df.loc[df[col_name]=='?'])
+    df.drop((df.loc[df[col_name]=='?']).index, inplace = True)
         
 class BreastCancer:
     
@@ -24,7 +24,8 @@ class BreastCancer:
             "Class"
             ]
     
-        for col_names in df.columns:
-            findMissing(col_names, df)
+        
         df.columns = columns
+        for col_names in columns:
+            findMissing(col_names, df)
         self.df = df
