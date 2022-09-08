@@ -37,7 +37,12 @@ class Iris:
         self.test = self.df.filter(items = test, axis = 0)
 
     def Q(self):
-        return self.train.groupby(by = ['Class'])['Class'].count()
+        return self.train.groupby(by = ['Class'])['Class'].count().apply(lambda x: x / self.train.shape[0])
+
+    def F1(self):
+        return self.train.groupby(by = ['Class', 'Sepal Length (cm)']).agg(Count = pd.NamedAgg(column = 'Class',
+                                                                                               aggfunc = 'count'))
+
 
 
 
