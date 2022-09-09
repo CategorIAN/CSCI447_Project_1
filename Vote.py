@@ -32,3 +32,15 @@ class Vote:
         for col_names in columns:
             findMissing(col_names, df)
         self.df = df
+        
+        p_cancer = df.groupby('Class Name').size().div(len(df)) #count()['Age']/len(data)
+        
+        likelihood = {}
+        
+        for col_name in columns:
+            if (col_name != 'Class Name'):
+                likelihood[col_name] = df.groupby(['Class Name', col_name]).size().div(len(df)).div(p_cancer) 
+                
+                
+        
+        
