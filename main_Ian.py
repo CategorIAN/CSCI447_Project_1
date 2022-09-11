@@ -1,10 +1,5 @@
-from Iris import Iris
-from Iris2 import Iris2
-from SoyBean2 import SoyBean2
-from SoyBean import SoyBean
-from BreastCancer import BreastCancer
-from Glass import Glass
-import pandas as pd
+from Iris import Iris2
+from SoyBean import SoyBean2
 
 
 if __name__ == '__main__':
