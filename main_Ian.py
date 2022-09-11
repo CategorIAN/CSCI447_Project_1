@@ -7,4 +7,4 @@ import pandas as pd
 
 if __name__ == '__main__':
     I = Iris()
-    print(type(I.F1()))
+    print(I.F(0))

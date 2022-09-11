@@ -6,10 +6,10 @@ import numpy as np
 class Iris:
     def __init__(self):
         df = pd.read_csv(os.getcwd() + r'\Raw Data\iris.csv')
-        columns = ['Sepal Length (cm)', 'Sepal Width (cm)', 'Petal Length (cm)', 'Petal Width (cm)', 'Class']
-        df.columns = columns
+        self.features = ['Sepal Length (cm)', 'Sepal Width (cm)', 'Petal Length (cm)',
+                         'Petal Width (cm)']
+        df.columns = self.features + ['Class']
         self.df = df
-        self.classes = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
         self.k_fold_partition(10)
         self.training_test_sets(0)
 
@@ -39,8 +39,8 @@ class Iris:
     def Q(self):
         return self.train.groupby(by = ['Class'])['Class'].count().apply(lambda x: x / self.train.shape[0])
 
-    def F1(self):
-        return self.train.groupby(by = ['Class', 'Sepal Length (cm)']).agg(Count = pd.NamedAgg(column = 'Class',
+    def F(self, j):
+        return self.train.groupby(by = ['Class', self.features[j]]).agg(Count = pd.NamedAgg(column = 'Class',
                                                                                                aggfunc = 'count'))
 
 
