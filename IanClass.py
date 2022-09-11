@@ -3,22 +3,22 @@ import os
 import math
 import random
 
-class Iris:
-    def __init__(self):
-        df = pd.read_csv(os.getcwd() + r'\Raw Data\iris.csv')
-        self.features = ['Sepal Length (cm)', 'Sepal Width (cm)', 'Petal Length (cm)',
-                         'Petal Width (cm)']
+class IanClass:
+    def __init__(self, file, features, name):
+        df = pd.read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)
+        self.features = features
         df.columns = self.features + ['Class']
         self.df = df
         self.seed = random.random()
+        self.name = name
 
     def __str__(self):
-        return "Iris"
+        return self.name
 
     def getNoise(self):
         d = self.df.to_dict()
         random.seed(self.seed)
-        noise_features = random.sample(self.features, k = math.ceil(len(self.features) * .1))
+        noise_features = random.sample(self.features, k=math.ceil(len(self.features) * .1))
         for feature in noise_features:
             random.shuffle(d[feature])
         return pd.DataFrame(d)
@@ -53,7 +53,7 @@ class Iris:
     def getF(self, j, Qtrain = None):
         if Qtrain is None: Qtrain = self.getQ()
         df = pd.DataFrame(self.train_set.groupby(by = ['Class', self.features[j]])['Class'].agg('count')).rename(
-                                                                                        columns = {'Class':'Count'})
+                                                                                        columns = {'Class' : 'Count'})
         y = []
         for ((cl, _), count) in df['Count'].to_dict().items():
             y.append((count + 1)/(Qtrain.at[cl, 'Count'] + len(self.features)))
@@ -106,21 +106,3 @@ class Iris:
                     predicted_classes.append(self.predicted_class(self.value(i), Qtrain, Ftrains))
                 data["Pred_{}".format(j)] = predicted_classes
             data.to_csv(file_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
