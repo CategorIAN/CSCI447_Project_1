@@ -7,4 +7,5 @@ import pandas as pd
 
 if __name__ == '__main__':
     I = Iris()
-    print(I.F(0))
+    for i in range(20):
+        print(I.value(i))

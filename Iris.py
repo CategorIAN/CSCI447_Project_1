@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import math
 import numpy as np
+import random
+
 
 class Iris:
     def __init__(self):
@@ -12,7 +14,15 @@ class Iris:
         self.df = df
         self.k_fold_partition(10)
         self.training_test_sets(0)
+        self.seed = random.random()
 
+    def getNoise(self):
+        d = self.df.to_dict()
+        random.seed(self.seed)
+        noise_features = random.sample(self.features, k = math.ceil(len(self.features) * .1))
+        for feature in noise_features:
+            random.shuffle(d[feature])
+        self.noisy_df = pd.DataFrame(d)
 
     def k_fold_partition(self, k):
         n = self.df.shape[0]
@@ -36,12 +46,36 @@ class Iris:
         self.train = self.df.filter(items = train, axis = 0)
         self.test = self.df.filter(items = test, axis = 0)
 
-    def Q(self):
-        return self.train.groupby(by = ['Class'])['Class'].count().apply(lambda x: x / self.train.shape[0])
+    def getQ(self):
+        df = pd.DataFrame(self.train.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
+                                                                                           {'Class': 'Count'})
+        df['Q'] = df['Count'].apply(lambda x: x / self.train.shape[0])
+        return df
 
-    def F(self, j):
-        return self.train.groupby(by = ['Class', self.features[j]]).agg(Count = pd.NamedAgg(column = 'Class',
-                                                                                               aggfunc = 'count'))
+    def getF(self, j, Qtrain = None):
+        if Qtrain is None: Qtrain = self.getQ()
+        df = self.train.groupby(by = ['Class', self.features[j]]).agg(Count = pd.NamedAgg(column = 'Class',
+                                    aggfunc = 'count'))
+        y = []
+        for ((cl, _), count) in df['Count'].to_dict().items():
+            y.append((count + 1)/(Qtrain.at[cl, 'Count'] + len(self.features)))
+        df['F'] = y
+        return df
+
+    def getFs(self, Qtrain = None):
+        Fs = []
+        for j in range(len(self.features)):
+            Fs.append(self.getF(j, Qtrain))
+        return Fs
+
+    def value(self, i):
+        return self.df.iloc[i, len(self.features) * [True] + [False]]
+
+
+
+
+
+
 
 
 
