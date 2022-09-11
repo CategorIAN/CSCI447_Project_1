@@ -12,7 +12,6 @@ class Iris:
                          'Petal Width (cm)']
         df.columns = self.features + ['Class']
         self.df = df
-        self.k_fold_partition(10)
         self.training_test_sets(0)
         self.seed = random.random()
 
@@ -22,9 +21,9 @@ class Iris:
         noise_features = random.sample(self.features, k = math.ceil(len(self.features) * .1))
         for feature in noise_features:
             random.shuffle(d[feature])
-        self.noisy_df = pd.DataFrame(d)
+        return pd.DataFrame(d)
 
-    def k_fold_partition(self, k):
+    def partition(self, k):
         n = self.df.shape[0]
         p = []
         q = n // k
@@ -36,25 +35,26 @@ class Iris:
         for i in range(r, k):
                 p.append(list(range(j, j + q)))
                 j += q
-        self.p = p
+        return p
 
-    def training_test_sets(self, j):
+    def training_test_sets(self, j, partition = None):
+        if partition is None: partition = self.partition(10)
         train = []
-        for i in range(len(self.p)):
-            if j != i: train += self.p[i]
-            else: test = self.p[i]
-        self.train = self.df.filter(items = train, axis = 0)
-        self.test = self.df.filter(items = test, axis = 0)
+        for i in range(len(partition)):
+            if j != i: train += partition[i]
+            else: test = partition[i]
+        self.train_set = self.df.filter(items = train, axis = 0)
+        self.test_set = self.df.filter(items = test, axis = 0)
 
     def getQ(self):
-        df = pd.DataFrame(self.train.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
+        df = pd.DataFrame(self.train_set.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
                                                                                            {'Class': 'Count'})
-        df['Q'] = df['Count'].apply(lambda x: x / self.train.shape[0])
+        df['Q'] = df['Count'].apply(lambda x: x / self.train_set.shape[0])
         return df
 
     def getF(self, j, Qtrain = None):
         if Qtrain is None: Qtrain = self.getQ()
-        df = self.train.groupby(by = ['Class', self.features[j]]).agg(Count = pd.NamedAgg(column = 'Class',
+        df = self.train_set.groupby(by = ['Class', self.features[j]]).agg(Count = pd.NamedAgg(column = 'Class',
                                     aggfunc = 'count'))
         y = []
         for ((cl, _), count) in df['Count'].to_dict().items():
@@ -70,6 +70,54 @@ class Iris:
 
     def value(self, i):
         return self.df.iloc[i, len(self.features) * [True] + [False]]
+
+
+    def C(self, cl, x, Qtrain = None, Ftrains = None):
+        if Qtrain is None: Qtrain = self.getQ()
+        if Ftrains is None: Ftrains = self.getFs(Qtrain)
+        result = Qtrain.at[cl, 'Q']
+        for j in range(len(self.features)):
+            F = Ftrains[j]
+            if (cl, x[j]) in F.index:
+                result = result * F.at[(cl, x[j]), 'F']
+            else: return 0
+        return result
+
+    def predicted_class(self, x, Qtrain = None, Ftrains = None):
+        if Qtrain is None: Qtrain = self.getQ()
+        if Ftrains is None: Ftrains = self.getFs(Qtrain)
+        (argmax, max_C) = (None, 0)
+        for cl in Qtrain.index:
+            y = self.C(cl, x, Qtrain, Ftrains)
+            if y > max_C:
+                argmax = cl
+                max_C = y
+        return argmax
+
+    def test(self):
+        p = self.partition(10)
+        pred_df = pd.DataFrame(self.df.to_dict())
+        pred_df_noise = self.getNoise()
+        dfs = [pred_df, pred_df_noise]
+        df_names = ["Pred_Iris.csv", "Pred_Iris_Noise.csv"]
+        dfs = [(pred_df, "Pred_Iris.csv"), (pred_df_noise, "Pred_Iris_Noise.csv")]
+        for (data, file_name) in dfs:
+            for j in range(10):
+                self.training_test_sets(j, p)
+                Qtrain = self.getQ()
+                Ftrains = self.getFs(Qtrain)
+                predicted_classes = []
+                for i in range(len(range(self.df.shape[0]))):
+                    predicted_classes.append(self.predicted_class(self.value(i), Qtrain, Ftrains))
+                data["Pred_{}".format(j)] = predicted_classes
+            data.to_csv(file_name)
+
+
+
+
+
+
+
 
 
 
