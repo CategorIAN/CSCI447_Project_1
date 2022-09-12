@@ -1,11 +1,7 @@
-from Iris import Iris
-from SoyBean import SoyBean
-from BreastCancer import BreastCancer
-from Glass import Glass
-import pandas as pd
+from Iris import Iris2
+from SoyBean import SoyBean2
 
 
 if __name__ == '__main__':
-    I = Iris()
-    for i in range(20):
-        print(I.value(i))
+    S = SoyBean2()
+    S.test()
