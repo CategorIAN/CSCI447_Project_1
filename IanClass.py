@@ -3,14 +3,26 @@ import os
 import math
 import random
 
+# This class encapsulates the data to learn from as well as methods used to learn based on a representation bias
+# 1. getNoise: returns a copy of the data that has added noise
+# 2. partition(k): returns a k-fold partition of the indices of the data
+# 3. training_test_sets(j, partition) sets the training set and test set from an index of a partition
+# 4. getQ(): returns the Q dataframe indexed by the classes of the data
+# 5. getF(j, Qtrain): returns the F dataframe for the jth feature using a Q dataframe
+# 6. getFs(Qtrain): returns a list of F dataframes for each feature of the data
+# 7. value(i): returns the ith value of the data, which includes the features but excludes the class
+# 8. C(cl, x, Qtrain, Ftrains): returns real value for a given class cl and value x using trained Q and Fs
+# 9. predicted_class(x, Qtrain, Ftrains): returns predicted class for a given value using trained Q and Fs
+# 10. test(): creates two csv files that show predicted classes for each value for each train/test partition
 class IanClass:
+
     def __init__(self, file, features, name):
-        df = pd.read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)
-        self.features = features
-        df.columns = self.features + ['Class']
-        self.df = df
-        self.seed = random.random()
-        self.name = name
+        df = pd.read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)  #creates a dataframe from the raw data
+        self.features = features                                    #defines the features of the data
+        df.columns = self.features + ['Class']                      #names the columns from the features and the class
+        self.df = df                                                #defines the dataframe for the class
+        self.seed = random.random()                                 #creates a random seed
+        self.name = name                                            #gives the object a name
 
     def __str__(self):
         return self.name
