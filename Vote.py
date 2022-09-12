@@ -75,6 +75,7 @@ def calcuate_class_probabilities(summaries, row):
 
 def predict(summaries, row):
     probabilities = calcuate_class_probabilities(summaries, row)
+    print(probabilities)
     best_label, best_prob = None, -1
     for class_value, probability in probabilities.items():
         if best_label is None or probability > best_prob:
