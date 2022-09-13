@@ -16,16 +16,30 @@ import random
 # 10. test(): creates two csv files that show predicted classes for each value for each train/test partition
 class IanClass:
 
-    def __init__(self, file, features, name):
+    def __init__(self, file, features, name, discretize = False):
         df = pd.read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)  #creates a dataframe from the raw data
         self.features = features                                    #defines the features of the data
         df.columns = self.features + ['Class']                      #names the columns from the features and the class
-        self.df = df                                                #defines the dataframe for the class
+        self.df = df
+        if discretize: self.discrete()                              #defines the dataframe for the class
         self.seed = random.random()                                 #creates a random seed
         self.name = name                                            #gives the object a name
 
     def __str__(self):
         return self.name
+
+    def discrete(self):
+        new_df = pd.DataFrame({})
+        new_features = []
+        for f in self.features:
+            c = self.df[f]
+            new_df[f + "_Int"] = c.apply(lambda x: math.floor(x))
+            new_features.append(f + "_Int")
+            new_df[f + "_Dec"] = c.apply(lambda x: int(10 * (x - math.floor(x))))
+            new_features.append(f + "_Dec")
+        new_df['Class'] = self.df['Class']
+        self.df = new_df
+        self.features = new_features
 
     def getNoise(self):
         d = self.df.to_dict()
@@ -103,6 +117,9 @@ class IanClass:
                 max_C = y
         return argmax
 
+    def zero_one_loss(self, predicted, actual):
+        return int(predicted == actual)
+
     def test(self):
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
@@ -114,7 +131,12 @@ class IanClass:
                 Qtrain = self.getQ()
                 Ftrains = self.getFs(Qtrain)
                 predicted_classes = []
+                zero_one_losses = []
                 for i in range(len(range(self.df.shape[0]))):
-                    predicted_classes.append(self.predicted_class(self.value(i), Qtrain, Ftrains))
+                    predicted = self.predicted_class(self.value(i), Qtrain, Ftrains)
+                    actual = self.df.at[i, 'Class']
+                    predicted_classes.append(predicted)
+                    zero_one_losses.append(self.zero_one_loss(predicted, actual))
                 data["Pred_{}".format(j)] = predicted_classes
+                data["Pred_{}_Zero_One_Loss".format(j)] = zero_one_losses
             data.to_csv(file_name)

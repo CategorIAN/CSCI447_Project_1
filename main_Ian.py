@@ -1,7 +1,7 @@
-from Iris import Iris2
-from SoyBean import SoyBean2
+from Iris import Iris
+from SoyBean import SoyBean
 
 
 if __name__ == '__main__':
-    S = SoyBean2()
-    S.test()
+    D = SoyBean()
+    D.test()
