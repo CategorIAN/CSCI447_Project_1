@@ -4,9 +4,7 @@ import os
 import math
 import random
 
-class EthanClass:
-
-
+class NaiveBayes:
 
     def __init__(self, file, features, name, classLoc):
         

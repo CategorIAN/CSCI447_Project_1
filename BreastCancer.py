@@ -1,13 +1,10 @@
-from EthanClass import EthanClass as EC
+from NaiveBayes import NaiveBayes as NB   
 
 #function to find Missing data from dataset
 def findMissing(col_name, df):
-    
-    #df.drop((df.loc[df[col_name]=='?']).index, inplace = True) #drop the row that contains the missing value
-    
-    df[col_name] = df[col_name].replace(['?'],['3']) #maybe place random no or yes
+    df[col_name] = df[col_name].replace(['?'],['3']) 
         
-class BreastCancer (EC):
+class BreastCancer (NB):
     
     def __init__(self):
         features = [   #column names class at end
@@ -23,7 +20,7 @@ class BreastCancer (EC):
             'Mitoses'
             ]
 
-        cancer = EC(file = 'breast-cancer-wisconsin.csv', features = features, name = "Cancer", classLoc = 'end')
+        cancer = NB(file = 'breast-cancer-wisconsin.csv', features = features, name = "Cancer", classLoc = 'end')
         for col_names in cancer.df.columns: #replace missing values in df
             findMissing(col_names, cancer.df)
 
@@ -35,17 +32,3 @@ class BreastCancer (EC):
 
 
 
-        # df.columns = columns
-        # for col_names in columns:
-        #     findMissing(col_names, df)
-        # self.df = df
-        
-        # p_cancer = df.groupby('Class').size().div(len(df)) #count()['Age']/len(data)
-        
-        # likelihood = {}
-        # likelihood['Clump Thickness'] = df.groupby(['Class', 'Clump Thickness']).size().div(len(df)).div(p_cancer)
-        # likelihood['Uniformity of Cell Size'] = df.groupby(['Class', 'Uniformity of Cell Size']).size().div(len(df)).div(p_cancer)
-        # likelihood['Uniformity of Cell Shape'] = df.groupby(['Class', 'Uniformity of Cell Shape']).size().div(len(df)).div(p_cancer)
-        # likelihood['Marginal Adhesion'] = df.groupby(['Class', 'Marginal Adhesion']).size().div(len(df)).div(p_cancer)
-        
-        # print(likelihood)
