@@ -7,7 +7,7 @@ def findMissing(col_name, df):
     
     df[col_name] = df[col_name].replace(['?'],['3']) #maybe place random no or yes
         
-class BreastCancer:
+class BreastCancer (EC):
     
     def __init__(self):
         features = [   #column names class at end
