@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import math
 import random
+from ConfusionMatrix import ConfusionMatrix
 
 class NaiveBayes:
 
@@ -23,6 +24,7 @@ class NaiveBayes:
         self.df = df
         self.seed = random.random()
         self.name = name
+        self.classes = list(set(self.df['Class']))
 
     def __str__(self):
         return self.name
@@ -110,7 +112,7 @@ class NaiveBayes:
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
         pred_df_noise = self.getNoise()
-        evaluation_df = pd.DataFrame(columns=['Noise?', 'Test_Set', 'Zero_One_Loss_Avg'])
+        evaluation_df = pd.DataFrame(columns=['Noise?', 'Test_Set', 'Zero_One_Loss_Avg', 'P_Micro'])
         dfs = [(pred_df, "{}_Pred.csv".format(str(self)), False),
                (pred_df_noise, "{}_Pred_Noise.csv".format(str(self)), True)]
         for (data, file_name, noise) in dfs:
@@ -119,19 +121,20 @@ class NaiveBayes:
                 Qtrain = self.getQ()
                 Ftrains = self.getFs(Qtrain)
                 predicted_classes = []
-                zero_one_losses = []
                 zero_one_sum = 0
-                for i in range(len(range(data.shape[0]))):
-                    predicted = self.predicted_class(self.value(data, i), Qtrain, Ftrains)
-                    actual = data.at[i, 'Class']
-                    predicted_classes.append(predicted)
-                    zero_one = self.zero_one_loss(predicted, actual)
-                    zero_one_losses.append(zero_one)
-                    if i in p[j]: zero_one_sum += zero_one
+                CM = ConfusionMatrix(self.classes)
+                for i in range(data.shape[0]):
+                    if i in p[j]:
+                        predicted = self.predicted_class(self.value(data, i), Qtrain, Ftrains)
+                        actual = data.at[i, 'Class']
+                        predicted_classes.append(predicted)
+                        zero_one_sum += self.zero_one_loss(predicted, actual)
+                        CM.addOne(predicted, actual)
+                    else:
+                        predicted_classes.append(None)
                 data["Pred_{}".format(j)] = predicted_classes
-                data["Pred_{}_Zero_One_Loss".format(j)] = zero_one_losses
                 zero_one_avg = zero_one_sum / len(p[j])
-                evaluation_df.loc[len(evaluation_df)] = [noise, j, zero_one_avg]
+                evaluation_df.loc[len(evaluation_df)] = [noise, j, zero_one_avg, CM.pmicro()]
             data.to_csv(file_name)
         evaluation_df.to_csv("{}_Eval.csv".format(str(self)))
     
