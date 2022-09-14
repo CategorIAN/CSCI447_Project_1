@@ -3,5 +3,4 @@ from SoyBean import SoyBean
 
 
 if __name__ == '__main__':
-    D = SoyBean()
-    D.test()
+    D = Iris()

@@ -47,14 +47,14 @@ class NaiveBayes:
                 j += q
         return p
 
-    def training_test_sets(self, j, partition = None):
+    def training_test_sets(self, j, df, partition = None):
         if partition is None: partition = self.partition(10)
         train = []
         for i in range(len(partition)):
             if j != i: train += partition[i]
             else: test = partition[i]
-        self.train_set = self.df.filter(items = train, axis = 0)
-        self.test_set = self.df.filter(items = test, axis = 0)
+        self.train_set = df.filter(items = train, axis = 0)
+        self.test_set = df.filter(items = test, axis = 0)
 
     def getQ(self):
         df = pd.DataFrame(self.train_set.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
@@ -78,8 +78,8 @@ class NaiveBayes:
             Fs.append(self.getF(j, Qtrain))
         return Fs
 
-    def value(self, i):
-        return self.df.iloc[i, (len(self.features)) * [True] + [False]]
+    def value(self, df, i):
+        return df.loc[i, self.features]
 
     def C(self, cl, x, Qtrain = None, Ftrains = None):
         if Qtrain is None: Qtrain = self.getQ()
@@ -110,22 +110,30 @@ class NaiveBayes:
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
         pred_df_noise = self.getNoise()
-        dfs = [(pred_df, "{}_Pred.csv".format(str(self))), (pred_df_noise, "{}_Pred_Noise.csv".format(str(self)))]
-        for (data, file_name) in dfs:
+        evaluation_df = pd.DataFrame(columns=['Noise?', 'Test_Set', 'Zero_One_Loss_Avg'])
+        dfs = [(pred_df, "{}_Pred.csv".format(str(self)), False),
+               (pred_df_noise, "{}_Pred_Noise.csv".format(str(self)), True)]
+        for (data, file_name, noise) in dfs:
             for j in range(len(p)):
-                self.training_test_sets(j, p)
+                self.training_test_sets(j, data, p)
                 Qtrain = self.getQ()
                 Ftrains = self.getFs(Qtrain)
                 predicted_classes = []
                 zero_one_losses = []
-                for i in range(len(range(self.df.shape[0]))):
-                    predicted = self.predicted_class(self.value(i), Qtrain, Ftrains)
-                    actual = self.df.at[i, 'Class']
+                zero_one_sum = 0
+                for i in range(len(range(data.shape[0]))):
+                    predicted = self.predicted_class(self.value(data, i), Qtrain, Ftrains)
+                    actual = data.at[i, 'Class']
                     predicted_classes.append(predicted)
-                    zero_one_losses.append(self.zero_one_loss(predicted, actual))
+                    zero_one = self.zero_one_loss(predicted, actual)
+                    zero_one_losses.append(zero_one)
+                    if i in p[j]: zero_one_sum += zero_one
                 data["Pred_{}".format(j)] = predicted_classes
                 data["Pred_{}_Zero_One_Loss".format(j)] = zero_one_losses
+                zero_one_avg = zero_one_sum / len(p[j])
+                evaluation_df.loc[len(evaluation_df)] = [noise, j, zero_one_avg]
             data.to_csv(file_name)
+        evaluation_df.to_csv("{}_Eval.csv".format(str(self)))
     
 
     

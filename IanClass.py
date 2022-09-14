@@ -29,17 +29,7 @@ class IanClass:
         return self.name
 
     def discrete(self):
-        new_df = pd.DataFrame({})
-        new_features = []
-        for f in self.features:
-            c = self.df[f]
-            new_df[f + "_Int"] = c.apply(lambda x: math.floor(x))
-            new_features.append(f + "_Int")
-            new_df[f + "_Dec"] = c.apply(lambda x: int(10 * (x - math.floor(x))))
-            new_features.append(f + "_Dec")
-        new_df['Class'] = self.df['Class']
-        self.df = new_df
-        self.features = new_features
+        pass
 
     def getNoise(self):
         d = self.df.to_dict()
@@ -124,19 +114,27 @@ class IanClass:
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
         pred_df_noise = self.getNoise()
-        dfs = [(pred_df, "{}_Pred.csv".format(str(self))), (pred_df_noise, "{}_Pred_Noise.csv".format(str(self)))]
-        for (data, file_name) in dfs:
+        evaluation_df = pd.DataFrame(columns = ['Noise?', 'Test_Set', 'Zero_One_Loss_Avg'])
+        dfs = [(pred_df, "{}_Pred.csv".format(str(self), False)), (pred_df_noise, "{}_Pred_Noise.csv".format(str(self)),
+                                                                   True)]
+        for (data, file_name, noise) in dfs:
             for j in range(len(p)):
                 self.training_test_sets(j, p)
                 Qtrain = self.getQ()
                 Ftrains = self.getFs(Qtrain)
                 predicted_classes = []
                 zero_one_losses = []
+                zero_one_sum = 0
                 for i in range(len(range(self.df.shape[0]))):
                     predicted = self.predicted_class(self.value(i), Qtrain, Ftrains)
                     actual = self.df.at[i, 'Class']
                     predicted_classes.append(predicted)
-                    zero_one_losses.append(self.zero_one_loss(predicted, actual))
+                    zero_one = self.zero_one_loss(predicted, actual)
+                    zero_one_losses.append(zero_one)
+                    if i in p[j]: zero_one_sum += zero_one
                 data["Pred_{}".format(j)] = predicted_classes
                 data["Pred_{}_Zero_One_Loss".format(j)] = zero_one_losses
+                zero_one_avg = zero_one_sum / len(p[j])
+                evaluation_df.append({'Noise?': noise, 'Test_Set': j, 'Zero_One_Loss_Avg': zero_one_avg})
             data.to_csv(file_name)
+        evaluation_df.to_csv("{}_Eval".format(str(self)))

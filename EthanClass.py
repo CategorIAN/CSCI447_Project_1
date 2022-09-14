@@ -6,8 +6,6 @@ import random
 
 class EthanClass:
 
-
-
     def __init__(self, file, features, name, classLoc):
         
         df = pd .read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)
