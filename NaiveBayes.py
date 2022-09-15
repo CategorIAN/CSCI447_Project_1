@@ -19,7 +19,7 @@ class NaiveBayes:
         if replaceValue: self.findMissing(replaceValue)
         self.df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_w_colnames.csv".format(str(self)))
         self.seed = random.random()
-        self.default_bin_number = 5
+        self.default_bin_number = 1
 
     def __str__(self):
         return self.name
@@ -45,8 +45,7 @@ class NaiveBayes:
         try:
             binned_df[self.features] = binned_df[self.features].apply(pd.to_numeric, axis=1)
             for col_name in self.features:  # get rid of continuous values
-                if col_name != 'Class':
-                    binned_df[col_name] = pd.qcut(df[col_name].rank(method='first'), q=n, labels=np.arange(n) + 1)
+                binned_df[col_name] = pd.qcut(df[col_name].rank(method='first'), q=n, labels=np.arange(n) + 1)
         except:
             pass
         return binned_df
@@ -141,7 +140,7 @@ class NaiveBayes:
         for (data, file_name, noise) in dfs:
             count = 0
             bin_number = self.default_bin_number
-            for b in range(3):
+            for b in range(10):
                 binned_df = self.bin(df = data, n = bin_number)
                 for j in range(len(p)):
                     self.training_test_sets(j, binned_df, p)
@@ -171,6 +170,8 @@ class NaiveBayes:
             columns = {'P_Macro': 'P_Macro_Avg'})
         analysis_df["Average"] = .5 * (analysis_df['Zero_One_Loss_Avg'] + analysis_df['P_Macro_Avg'])
         analysis_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_Analysis.csv".format(str(self)))
+        print("Best for {}: {}".format(str(self), analysis_df.loc[analysis_df['Average'] ==
+                                                                  analysis_df['Average'].max()]['Average']))
         analysis_df.reset_index(inplace=True)
         analysis_df.insert(0, 'Data', analysis_df.shape[0] * [str(self)])
         self.analysis_df = analysis_df

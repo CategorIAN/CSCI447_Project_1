@@ -1,4 +1,4 @@
-,Date,Plant-Stand,Precip,Temp,Hail,Crop-Hist,Area-Damaged,Severity,Seed-TMT,Germination,Plant-Growth,Leaves,Leafspots-Halo,Leafspots-Marg,Leafspot-Size,Leaf-Shread,Leaf-Malf,Leaf-Mild,Stem,Lodging,Stem-Cankers,Canker-Lesion,Fruiting-Bodies,External Decay,Mycelium,Int-Discolor,Sclerotia,Fruit-Pods,Fruit Spots,Seed,Mold-Growth,Seed-Discolor,Seed-Size,Shriveling,Roots,Class,Pred_0,Pred_1,Pred_2,Pred_3,Pred_4,Pred_5,Pred_6,Pred_7,Pred_8,Pred_9
+,Date,Plant-Stand,Precip,Temp,Hail,Crop-Hist,Area-Damaged,Severity,Seed-TMT,Germination,Plant-Growth,Leaves,Leafspots-Halo,Leafspots-Marg,Leafspot-Size,Leaf-Shread,Leaf-Malf,Leaf-Mild,Stem,Lodging,Stem-Cankers,Canker-Lesion,Fruiting-Bodies,External Decay,Mycelium,Int-Discolor,Sclerotia,Fruit-Pods,Fruit Spots,Seed,Mold-Growth,Seed-Discolor,Seed-Size,Shriveling,Roots,Class,Pred_40,Pred_41,Pred_42,Pred_43,Pred_44,Pred_45,Pred_46,Pred_47,Pred_48,Pred_49
 0,4,1,2,2,1,4,1,1,3,4,1,1,1,1,1,1,1,1,1,4,5,1,5,3,1,1,1,1,1,1,1,1,1,1,1,D1,D1,,,,,,,,,
 1,3,1,2,2,1,3,1,3,3,2,1,2,1,1,1,1,1,1,1,1,5,1,5,3,1,1,1,1,1,1,1,1,1,1,1,D1,D1,,,,,,,,,
 2,5,1,2,3,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,4,5,1,5,3,1,1,1,1,1,1,1,1,1,1,1,D1,D1,,,,,,,,,
