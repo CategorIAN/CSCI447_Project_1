@@ -4,6 +4,7 @@ import os
 import math
 import random
 from ConfusionMatrix import ConfusionMatrix
+import numpy as np
 
 class NaiveBayes:
 
@@ -11,7 +12,6 @@ class NaiveBayes:
         
         df = pd .read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)
         self.features = features
-        df.columns
         if(classLoc == 'beginning'): #if the class column is at the beginning
             df.columns = ['Class'] + self.features
             #shift the class column to the last column
@@ -25,10 +25,17 @@ class NaiveBayes:
         self.seed = random.random()
         self.name = name
         self.classes = list(set(self.df['Class']))
+        self.default_bin_number = 5
 
     def __str__(self):
         return self.name
-    
+
+    def bin(self, df, n, csv = False):
+        for col_name in self.features:  # get rid of continuous values
+            if col_name != 'Class':
+                df[col_name] = pd.qcut(df[col_name].rank(method='first'), q=n, labels=np.arange(n) + 1)
+        if csv: df.to_csv("{}_binned.csv".format(str(self)))
+
     def getNoise(self):
         df = self.df.to_dict()
         random.seed(self.seed)
@@ -112,31 +119,42 @@ class NaiveBayes:
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
         pred_df_noise = self.getNoise()
-        evaluation_df = pd.DataFrame(columns=['Noise?', 'Test_Set', 'Zero_One_Loss_Avg', 'P_Micro'])
+        evaluation_df = pd.DataFrame(columns=['Noise?', 'Bin_Number', 'Test_Set', 'Zero_One_Loss_Avg', 'P_Macro'])
         dfs = [(pred_df, "{}_Pred.csv".format(str(self)), False),
                (pred_df_noise, "{}_Pred_Noise.csv".format(str(self)), True)]
         for (data, file_name, noise) in dfs:
-            for j in range(len(p)):
-                self.training_test_sets(j, data, p)
-                Qtrain = self.getQ()
-                Ftrains = self.getFs(Qtrain)
-                predicted_classes = []
-                zero_one_sum = 0
-                CM = ConfusionMatrix(self.classes)
-                for i in range(data.shape[0]):
-                    if i in p[j]:
-                        predicted = self.predicted_class(self.value(data, i), Qtrain, Ftrains)
-                        actual = data.at[i, 'Class']
-                        predicted_classes.append(predicted)
-                        zero_one_sum += self.zero_one_loss(predicted, actual)
-                        CM.addOne(predicted, actual)
-                    else:
-                        predicted_classes.append(None)
-                data["Pred_{}".format(j)] = predicted_classes
-                zero_one_avg = zero_one_sum / len(p[j])
-                evaluation_df.loc[len(evaluation_df)] = [noise, j, zero_one_avg, CM.pmicro()]
+            count = 0
+            bin_number = self.default_bin_number
+            for b in range(3):
+                self.bin(df = data, n = bin_number)
+                for j in range(len(p)):
+                    self.training_test_sets(j, data, p)
+                    Qtrain = self.getQ()
+                    Ftrains = self.getFs(Qtrain)
+                    predicted_classes = []
+                    zero_one_sum = 0
+                    CM = ConfusionMatrix(self.classes)
+                    for i in range(data.shape[0]):
+                        if i in p[j]:
+                            predicted = self.predicted_class(self.value(data, i), Qtrain, Ftrains)
+                            actual = data.at[i, 'Class']
+                            predicted_classes.append(predicted)
+                            zero_one_sum += self.zero_one_loss(predicted, actual)
+                            CM.addOne(predicted, actual)
+                        else:
+                            predicted_classes.append(None)
+                    data["Pred_{}".format(count)] = predicted_classes
+                    zero_one_avg = zero_one_sum / len(p[j])
+                    evaluation_df.loc[len(evaluation_df)] = [noise, bin_number, j, zero_one_avg, CM.pmacro()]
+                    count += 1
+                bin_number += 1
             data.to_csv(file_name)
         evaluation_df.to_csv("{}_Eval.csv".format(str(self)))
+        analysis_df = evaluation_df.groupby(by = ['Noise?', 'Bin_Number'])['Zero_One_Loss_Avg', 'P_Macro'].agg('mean').rename(
+            columns = {'P_Macro': 'P_Macro_Avg'}
+        )
+        analysis_df["Average"] = .5 * (analysis_df['Zero_One_Loss_Avg'] + analysis_df['P_Macro_Avg'])
+        analysis_df.to_csv("{}_Analysis.csv".format(str(self)))
     
 
     

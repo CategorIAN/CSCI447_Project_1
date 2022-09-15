@@ -41,6 +41,27 @@ class ConfusionMatrix:
             denominator += (self.truepositive(cl) + self.falsepositive(cl))
         return numerator / denominator
 
+    def rmicro(self):
+        numerator = 0
+        denominator = 0
+        for cl in self.classes:
+            numerator += self.truepositive(cl)
+            denominator += self.truepositive(cl) + self.falsenegative(cl)
+        return numerator / denominator
+
+    def pmacro(self):
+        count = 0
+        class_number = 0
+        for cl in self.classes:
+            d = self.truepositive(cl) + self.falsepositive(cl)
+            if d != 0:
+                n = self.truepositive(cl)
+                count += n / d
+                class_number += 1
+        return count / class_number
+
+
+
 
 
 
