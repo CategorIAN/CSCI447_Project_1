@@ -1,7 +1,4 @@
-from NaiveBayes import NaiveBayes as NB  
-import pandas as pd
-import numpy as np
-
+from NaiveBayes import NaiveBayes as NB
 
 class Glass (NB):
     def __init__(self):
@@ -17,9 +14,9 @@ class Glass (NB):
             "Ba: Barium",
             "Fe: Iron"
             ]
-        glass = NB(file = 'glass.csv', features = features, name = 'Glass', classLoc = 'end')
 
-        glass.test()
+        super().__init__(file='glass.csv', features = features, name = 'Glass', classLoc = 'end')
+
 
 
 

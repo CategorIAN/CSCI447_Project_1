@@ -6,6 +6,7 @@ class Iris (NB):
     def __init__(self):
         features = ['Sepal Length (cm)', 'Sepal Width (cm)', 'Petal Length (cm)',
                          'Petal Width (cm)']
+
         super().__init__(file = 'iris.csv', features = features, name = "Iris",  classLoc= 'end')
 
 

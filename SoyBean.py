@@ -8,7 +8,7 @@ class SoyBean (NB):
                    'Canker-Lesion', 'Fruiting-Bodies', 'External Decay', 'Mycelium', 'Int-Discolor', 'Sclerotia',
                    'Fruit-Pods', 'Fruit Spots', 'Seed', 'Mold-Growth', 'Seed-Discolor', 'Seed-Size', 'Shriveling',
                    'Roots']
-        soybean = NB(file = 'soybean-small.csv', features = features, name = "SoyBean", classLoc='end')
-        
-        soybean.test()
+
+        super().__init__(file='soybean-small.csv', features = features, name="SoyBean", classLoc='end')
+
 

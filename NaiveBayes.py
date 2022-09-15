@@ -8,27 +8,36 @@ import numpy as np
 
 class NaiveBayes:
 
-    def __init__(self, file, features, name, classLoc):
+    def __init__(self, file, features, name, classLoc, replaceValue = None):
         
         df = pd .read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)
-        self.features = features
-        if(classLoc == 'beginning'): #if the class column is at the beginning
-            df.columns = ['Class'] + self.features
-            #shift the class column to the last column
-            last_column = df.pop('Class') 
-            df.insert(len(df.columns), 'Class', last_column) 
-        elif(classLoc == 'end'): #if the class column is at the end -> continue as normal
-            df.columns = self.features + ['Class'] 
-        else:
-            print('Not sure where to place Class column')
         self.df = df
-        self.seed = random.random()
+        self.features = features
         self.name = name
+        self.addColumnNames(classLoc)
         self.classes = list(set(self.df['Class']))
+        if replaceValue: self.findMissing(replaceValue)
+        self.seed = random.random()
         self.default_bin_number = 5
 
     def __str__(self):
         return self.name
+
+    def addColumnNames(self, classLoc):
+        if (classLoc == 'beginning'):  # if the class column is at the beginning
+            self.df.columns = ['Class'] + self.features
+            # shift the class column to the last column
+            last_column = self.df.pop('Class')
+            self.df.insert(len(self.df.columns), 'Class', last_column)
+        elif (classLoc == 'end'):  # if the class column is at the end -> continue as normal
+            self.df.columns = self.features + ['Class']
+        else:
+            print('Not sure where to place Class column')
+
+    # function to find Missing data from dataset
+    def findMissing(self, replaceValue):
+        for col_name in self.df.columns:
+            self.df[col_name] = self.df[col_name].replace(['?'], [replaceValue])
 
     def bin(self, df, n, csv = False):
         for col_name in self.features:  # get rid of continuous values
@@ -148,13 +157,13 @@ class NaiveBayes:
                     evaluation_df.loc[len(evaluation_df)] = [noise, bin_number, j, zero_one_avg, CM.pmacro()]
                     count += 1
                 bin_number += 1
-            data.to_csv(file_name)
-        evaluation_df.to_csv("{}_Eval.csv".format(str(self)))
-        analysis_df = evaluation_df.groupby(by = ['Noise?', 'Bin_Number'])['Zero_One_Loss_Avg', 'P_Macro'].agg('mean').rename(
+            data.to_csv(os.getcwd() + '\\' + str(self) + '\\' + file_name)
+        evaluation_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_Eval.csv".format(str(self)))
+        analysis_df = evaluation_df.groupby(by = ['Bin_Number'])[['Zero_One_Loss_Avg', 'P_Macro']].agg('mean').rename(
             columns = {'P_Macro': 'P_Macro_Avg'}
         )
         analysis_df["Average"] = .5 * (analysis_df['Zero_One_Loss_Avg'] + analysis_df['P_Macro_Avg'])
-        analysis_df.to_csv("{}_Analysis.csv".format(str(self)))
+        analysis_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_Analysis.csv".format(str(self)))
     
 
     

@@ -1,8 +1,4 @@
-from NaiveBayes import NaiveBayes as NB   
-
-#function to find Missing data from dataset
-def findMissing(col_name, df):
-    df[col_name] = df[col_name].replace(['?'],['3']) 
+from NaiveBayes import NaiveBayes as NB
         
 class BreastCancer (NB):
     
@@ -20,12 +16,10 @@ class BreastCancer (NB):
             'Mitoses'
             ]
 
-        cancer = NB(file = 'breast-cancer-wisconsin.csv', features = features, name = "Cancer", classLoc = 'end')
-        for col_names in cancer.df.columns: #replace missing values in df
-            findMissing(col_names, cancer.df)
+        super().__init__(file = 'breast-cancer-wisconsin.csv', features = features,
+                       name = "Cancer", classLoc = 'end', replaceValue = '3')
 
 
-        cancer.test()
     
         
 
