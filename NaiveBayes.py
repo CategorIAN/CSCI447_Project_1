@@ -19,7 +19,6 @@ class NaiveBayes:
         if replaceValue: self.findMissing(replaceValue)
         self.df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_w_colnames.csv".format(str(self)))
         self.seed = random.random()
-        self.default_bin_number = 1
 
     def __str__(self):
         return self.name
@@ -80,26 +79,26 @@ class NaiveBayes:
         self.train_set = df.filter(items = train, axis = 0)
         self.test_set = df.filter(items = test, axis = 0)
 
-    def getQ(self):
+    def getQ(self): #probability of the class
         df = pd.DataFrame(self.train_set.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
                                                                                                {'Class': 'Count'})
         df['Q'] = df['Count'].apply(lambda x: x / self.train_set.shape[0])
         return df
 
-    def getF(self, j, Qtrain = None):
+    def getF(self, j, m, p, Qtrain = None):  #probability based on a single feature
         if Qtrain is None: Qtrain = self.getQ()
         df = pd.DataFrame(self.train_set.groupby(by = ['Class', self.features[j]])['Class'].agg('count')).rename(
                                                                                         columns = {'Class' : 'Count'})
         y = []
         for ((cl, _), count) in df['Count'].to_dict().items():
-            y.append((count + 1)/(Qtrain.at[cl, 'Count'] + len(self.features)))
+            y.append((count + 1 + m*p)/(Qtrain.at[cl, 'Count'] + len(self.features) + m)) 
         df['F'] = y
         return df
 
-    def getFs(self, Qtrain = None):
+    def getFs(self, m, p, Qtrain = None): #probability for a set of features
         Fs = []
         for j in range(len(self.features)):
-            Fs.append(self.getF(j, Qtrain))
+            Fs.append(self.getF(j, m, p, Qtrain))
         return Fs
 
     def value(self, df, i):
@@ -130,48 +129,67 @@ class NaiveBayes:
     def zero_one_loss(self, predicted, actual):
         return int(predicted == actual)
 
-    def test(self):
+    def test(self, tuning, bin_number):
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
         pred_df_noise = self.getNoise()
-        evaluation_df = pd.DataFrame(columns=['Noise?', 'Bin_Number', 'Test_Set', 'Zero_One_Loss_Avg', 'P_Macro'])
+        evaluation_df = pd.DataFrame(columns=['Noise?', 'Bin_Number', 'Test_Set', 'M_Value', 'Prob_Value', 'Zero_One_Loss_Avg', 'P_Macro'])
         dfs = [(pred_df, "{}_Pred".format(str(self)), False),
                (pred_df_noise, "{}_Pred_Noise".format(str(self)), True)]
+        
+        #go through normal df and df with noise
         for (data, file_name, noise) in dfs:
-            count = 0
-            bin_number = self.default_bin_number
-            for b in range(10):
-                binned_df = self.bin(df = data, n = bin_number)
-                for j in range(len(p)):
-                    self.training_test_sets(j, binned_df, p)
-                    Qtrain = self.getQ()
-                    Ftrains = self.getFs(Qtrain)
-                    predicted_classes = []
-                    zero_one_sum = 0
-                    CM = ConfusionMatrix(self.classes)
-                    for i in range(binned_df.shape[0]):
-                        if i in p[j]:
-                            predicted = self.predicted_class(self.value(binned_df, i), Qtrain, Ftrains)
-                            actual = binned_df.at[i, 'Class']
-                            predicted_classes.append(predicted)
-                            zero_one_sum += self.zero_one_loss(predicted, actual)
-                            CM.addOne(predicted, actual)
-                        else:
-                            predicted_classes.append(None)
-                    binned_df["Pred_{}".format(count)] = predicted_classes
-                    zero_one_avg = zero_one_sum / len(p[j])
-                    evaluation_df.loc[len(evaluation_df)] = [noise, bin_number, j, zero_one_avg, CM.pmacro()]
-                    count += 1
+
+            #go through each bin number
+            for b in range(bin_number, bin_number + tuning): 
+                
+                binned_df = self.bin(df = data, n = b) #create new dataframe for each bin number
+                
+                for tun in range(tuning):
+                    
+                    m = tun+1 #value to be tuned for above 1
+                    prob = 1/(100*(tun+1)) #another probability that will 
+                    
+                
+                    #partition 10 times
+                    for j in range(len(p)):
+                        self.training_test_sets(j, binned_df, p) #create partitions
+                        Qtrain = self.getQ()
+                        Ftrains = self.getFs(m, prob, Qtrain)
+                        predicted_classes = []
+                        zero_one_sum = 0
+                        CM = ConfusionMatrix(self.classes) #Create Confusion Matrix for loss function
+                        
+                        #go through each row
+                        for i in range(binned_df.shape[0]): 
+                            #if there is a partition
+                            if i in p[j]:
+                                predicted = self.predicted_class(self.value(binned_df, i), Qtrain, Ftrains) #predicted class value associated with the row
+                                actual = binned_df.at[i, 'Class'] #the class value associated with the row
+                                predicted_classes.append(predicted) 
+                                zero_one_sum += self.zero_one_loss(predicted, actual)
+                                CM.addOne(predicted, actual)
+                            else:
+                                predicted_classes.append(None)
+                        binned_df["Pred_{}".format(b)] = predicted_classes #populate the bin df with values
+                        zero_one_avg = zero_one_sum / len(p[j]) #calculate zero/one sum
+                        evaluation_df.loc[len(evaluation_df)] = [noise, b, j, m, prob, zero_one_avg, CM.pmacro()]
+                    
                 binned_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + file_name
-                                 + '_B{}'.format(bin_number) + '.csv')
-                bin_number += 1
+                                 + '_B{}'.format(b) + '.csv')
+                
+                
         evaluation_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_Eval.csv".format(str(self)))
-        analysis_df = evaluation_df.groupby(by = ['Bin_Number'])[['Zero_One_Loss_Avg', 'P_Macro']].agg('mean').rename(
+        analysis_df = evaluation_df.groupby(by = ['Bin_Number', 'M_Value', 'Prob_Value'])[['Zero_One_Loss_Avg', 'P_Macro']].agg('mean').rename(
             columns = {'P_Macro': 'P_Macro_Avg'})
         analysis_df["Average"] = .5 * (analysis_df['Zero_One_Loss_Avg'] + analysis_df['P_Macro_Avg'])
         analysis_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_Analysis.csv".format(str(self)))
-        print("Best for {}: {}".format(str(self), analysis_df.loc[analysis_df['Average'] ==
-                                                                  analysis_df['Average'].max()]['Average']))
+        
+        
+        # print("Best for {}: {}".format(str(self), analysis_df.loc[analysis_df['Average'] ==
+        #                                                           analysis_df['Average'].max()]['Average']))
+        
+        
         analysis_df.reset_index(inplace=True)
         analysis_df.insert(0, 'Data', analysis_df.shape[0] * [str(self)])
         self.analysis_df = analysis_df
