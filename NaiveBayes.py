@@ -8,21 +8,24 @@ import numpy as np
 
 class NaiveBayes:
 
-    def __init__(self, file, features, name, classLoc, replaceValue = None):
+    def __init__(self, file, features, name, classLoc, replaceValue = None): 
         
         df = pd .read_csv(os.getcwd() + r'\Raw Data' + '\\' + file)
-        self.df = df
-        self.features = features
+        self.df = df #dataframe
+        self.features = features 
         self.name = name
-        self.addColumnNames(classLoc)
+        self.addColumnNames(classLoc) #add column names to correct spot
         self.classes = list(set(self.df['Class']))
-        if replaceValue: self.findMissing(replaceValue)
-        self.df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_w_colnames.csv".format(str(self)))
+        if replaceValue: self.findMissing(replaceValue) #replace missing values
+        self.df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_w_colnames.csv".format(str(self))) #create csv of file
         self.seed = random.random()
 
-    def __str__(self):
-        return self.name
 
+    #print out the name of the file
+    def __str__(self):
+        return self.name 
+
+    #create the column names 
     def addColumnNames(self, classLoc):
         if (classLoc == 'beginning'):  # if the class column is at the beginning
             self.df.columns = ['Class'] + self.features
@@ -39,6 +42,7 @@ class NaiveBayes:
         for col_name in self.df.columns:
             self.df[col_name] = self.df[col_name].replace(['?'], [replaceValue])
 
+    #bin the data into a certain amount of equal sections
     def bin(self, df, n):
         binned_df = pd.DataFrame(df.to_dict())
         try:
@@ -50,6 +54,7 @@ class NaiveBayes:
         return binned_df
 
 
+    #create Noise in the dataset
     def getNoise(self):
         df = self.df.to_dict()
         random.seed(self.seed)
@@ -58,6 +63,7 @@ class NaiveBayes:
             random.shuffle(df[feature])
         return pd.DataFrame(df)
 
+    #partition the dataset into k partitions
     def partition(self, k):
         n = self.df.shape[0]
         (q, r) = (n // k, n % k)
@@ -70,6 +76,7 @@ class NaiveBayes:
                 j += q
         return p
 
+    #separate into training and test sets
     def training_test_sets(self, j, df, partition = None):
         if partition is None: partition = self.partition(10)
         train = []
@@ -79,13 +86,15 @@ class NaiveBayes:
         self.train_set = df.filter(items = train, axis = 0)
         self.test_set = df.filter(items = test, axis = 0)
 
-    def getQ(self): #probability of the class
+    #probability of the class
+    def getQ(self): 
         df = pd.DataFrame(self.train_set.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
                                                                                                {'Class': 'Count'})
         df['Q'] = df['Count'].apply(lambda x: x / self.train_set.shape[0])
         return df
 
-    def getF(self, j, m, p, Qtrain = None):  #probability based on a single feature
+    #probability of a sigle feature 
+    def getF(self, j, m, p, Qtrain = None): 
         if Qtrain is None: Qtrain = self.getQ()
         df = pd.DataFrame(self.train_set.groupby(by = ['Class', self.features[j]])['Class'].agg('count')).rename(
                                                                                         columns = {'Class' : 'Count'})
@@ -95,15 +104,18 @@ class NaiveBayes:
         df['F'] = y
         return df
 
-    def getFs(self, m, p, Qtrain = None): #probability for a set of features
+    #probability of a set of features
+    def getFs(self, m, p, Qtrain = None):
         Fs = []
         for j in range(len(self.features)):
             Fs.append(self.getF(j, m, p, Qtrain))
         return Fs
 
+    #return value of a ceratin feature
     def value(self, df, i):
         return df.loc[i, self.features]
 
+    #Calculate the probabilities of the class based on the features
     def C(self, cl, x, Qtrain = None, Ftrains = None):
         if Qtrain is None: Qtrain = self.getQ()
         if Ftrains is None: Ftrains = self.getFs(Qtrain)
@@ -115,10 +127,11 @@ class NaiveBayes:
             else: return 0
         return result
 
+    #predict the class value
     def predicted_class(self, x, Qtrain = None, Ftrains = None):
-        if Qtrain is None: Qtrain = self.getQ()
-        if Ftrains is None: Ftrains = self.getFs(Qtrain)
-        (argmax, max_C) = (None, 0)
+        if Qtrain is None: Qtrain = self.getQ()  #create class if not there
+        if Ftrains is None: Ftrains = self.getFs(Qtrain)  #create feature set if not there
+        (argmax, max_C) = (None, 0) 
         for cl in Qtrain.index:
             y = self.C(cl, x, Qtrain, Ftrains)
             if y > max_C:
@@ -126,9 +139,12 @@ class NaiveBayes:
                 max_C = y
         return argmax
     
-    def zero_one_loss(self, predicted, actual):
+    #detirmine if the predicted class and actual class are the same
+    def zero_one_loss(self, predicted, actual): 
         return int(predicted == actual)
 
+
+    #test a certain set of data, tuning it a certain amount of times, with a starting bin_number and starting m_val
     def test(self, tuning, bin_number, m_val):
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
@@ -184,12 +200,6 @@ class NaiveBayes:
             columns = {'P_Macro': 'P_Macro_Avg'})
         analysis_df["Average"] = .5 * (analysis_df['Zero_One_Loss_Avg'] + analysis_df['P_Macro_Avg'])
         analysis_df.to_csv(os.getcwd() + '\\' + str(self) + '\\' + "{}_Analysis.csv".format(str(self)))
-        
-        
-        # print("Best for {}: {}".format(str(self), analysis_df.loc[analysis_df['Average'] ==
-        #                                                           analysis_df['Average'].max()]['Average']))
-        
-        
         analysis_df.reset_index(inplace=True)
         analysis_df.insert(0, 'Data', analysis_df.shape[0] * [str(self)])
         self.analysis_df = analysis_df

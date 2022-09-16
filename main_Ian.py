@@ -15,16 +15,14 @@ def merge(*dfs):
 
     tuningdf = summary_df.loc[summary_df['Average'] == summary_df['Average'].max()]
     tuningdf.to_csv("tuningdf.csv")
-    
-    merge_df.style.to_latex("merge_latex.txt")
-    tuningdf.style.to_latex("tuning_latex.txt")
                     
-
+    merge_df.to_latex("merge_latex.txt")
+    tuningdf.to_latex("tuning_latex.txt")
 
 
 if __name__ == '__main__':
     
-    tuning = 2
+    tuning = 10
     if(exists("tuningdf.csv")):
         tuningdf = pd.read_csv("tuningdf.csv")       
         starting_bin = tuningdf['Bin_Number'].iloc[0]
@@ -45,4 +43,5 @@ if __name__ == '__main__':
     V = Vote()
     V.test(tuning, starting_bin, m_val)
     merge(I.analysis_df, S.analysis_df, C.analysis_df, G.analysis_df, V.analysis_df)
+    I.analysis_df.to_latex("i_analysis_latex.txt")
 

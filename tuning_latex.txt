@@ -3,6 +3,6 @@
    &    &          &   Average \\
 Bin\_Number & M\_Value & Prob\_Value &           \\
 \midrule
-11 & 11 & 0.000909 &  0.858273 \\
+11 & 23 & 0.000435 &  0.862202 \\
 \bottomrule
 \end{tabular}

@@ -2,6 +2,7 @@ from NaiveBayes import NaiveBayes as NB
 
 class Vote (NB):
     def __init__(self):
+        #list of feature names(excluding class)
         features = [   #Class at beginning
             'handicapped-infants',
             'water-project-cost-sharing',
@@ -21,7 +22,8 @@ class Vote (NB):
             'export-administration-act-south-africa'
         ]
 
-        super().__init__(file = 'house-votes-84.csv', features = features, name = "Vote",
+        #initiate vote test set
+        super().__init__(file = 'house-votes-84.csv', features = features, name = "Vote", 
                        classLoc='beginning', replaceValue = 'n')
                 
                 

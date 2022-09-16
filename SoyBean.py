@@ -2,6 +2,7 @@ from NaiveBayes import NaiveBayes as NB
 
 class SoyBean (NB):
     def __init__(self):
+        #list of feature names(excluding class)
         features = ['Date', 'Plant-Stand', 'Precip', 'Temp', 'Hail', 'Crop-Hist', 'Area-Damaged', 'Severity',
                    'Seed-TMT', 'Germination', 'Plant-Growth', 'Leaves', 'Leafspots-Halo', 'Leafspots-Marg',
                    'Leafspot-Size', 'Leaf-Shread', 'Leaf-Malf', 'Leaf-Mild', 'Stem', 'Lodging', 'Stem-Cankers',
@@ -9,6 +10,7 @@ class SoyBean (NB):
                    'Fruit-Pods', 'Fruit Spots', 'Seed', 'Mold-Growth', 'Seed-Discolor', 'Seed-Size', 'Shriveling',
                    'Roots']
 
+        #initiate soybeans test set
         super().__init__(file='soybean-small.csv', features = features, name="SoyBean", classLoc='end')
 
 
