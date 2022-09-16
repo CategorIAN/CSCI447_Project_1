@@ -4,6 +4,7 @@ from BreastCancer import BreastCancer as BC
 from Glass import Glass
 from Vote import Vote
 import pandas as pd
+from os.path import exists
 
 def merge(*dfs):    
     merge_df = pd.concat(list(dfs)).reset_index(drop=True)
@@ -19,22 +20,26 @@ def merge(*dfs):
 
 
 if __name__ == '__main__':
-    tuningdf = pd.DataFrame
-    starting_bin = 1
-    tuning = 3
-    if(tuningdf['Average'].iloc[0] != None):
-        print(tuningdf['Bin_Number'].iloc[0])
-        print(tuningdf['M_Value'].iloc[0])
+    
+    tuning = 5
+    if(exists("tuningdf.csv")):
+        tuningdf = pd.read_csv("tuningdf.csv")       
+        starting_bin = tuningdf['Bin_Number'].iloc[0]
+        m_val = tuningdf['M_Value'].iloc[0]
+    else:
+        starting_bin = 1
+        m_val = 1
+    
 
     I = Iris()
-    I.test(tuning, starting_bin)
+    I.test(tuning, starting_bin, m_val)
     S = SB()
-    S.test(tuning, starting_bin)
+    S.test(tuning, starting_bin, m_val)
     C = BC()
-    C.test(tuning, starting_bin)
+    C.test(tuning, starting_bin, m_val)
     G = Glass()
-    G.test(tuning, starting_bin)
+    G.test(tuning, starting_bin, m_val)
     V = Vote()
-    V.test(tuning, starting_bin)
+    V.test(tuning, starting_bin, m_val)
     merge(I.analysis_df, S.analysis_df, C.analysis_df, G.analysis_df, V.analysis_df)
 

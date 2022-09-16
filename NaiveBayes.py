@@ -129,7 +129,7 @@ class NaiveBayes:
     def zero_one_loss(self, predicted, actual):
         return int(predicted == actual)
 
-    def test(self, tuning, bin_number):
+    def test(self, tuning, bin_number, m_val):
         p = self.partition(10)
         pred_df = pd.DataFrame(self.df.to_dict())
         pred_df_noise = self.getNoise()
@@ -145,7 +145,7 @@ class NaiveBayes:
                 
                 binned_df = self.bin(df = data, n = b) #create new dataframe for each bin number
                 
-                for tun in range(tuning):
+                for tun in range(m_val, tuning + m_val):
                     
                     m = tun+1 #value to be tuned for above 1
                     prob = 1/(100*(tun+1)) #another probability that will 
