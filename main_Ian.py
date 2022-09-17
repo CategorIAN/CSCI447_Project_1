@@ -48,11 +48,16 @@ def random():
     VideoScripts.show_bins(data=D, bin_numbers=list(range(1, 4)))
     D = Iris()
     VideoScripts.show_trained_model(D, 11, 1, 0)
+    D = Iris()
+    VideoScripts.show_model_count(D, 11, 1, 0)
+
 
 
 if __name__ == '__main__':
     D = Iris()
-    VideoScripts.show_model_count(D, 11, 1, 0)
+    VideoScripts.preds_and_evals(D, 11, 1, 6)
+
+
 
 
     
