@@ -43,10 +43,17 @@ def ethanScript():
     merge(I.analysis_df, S.analysis_df, C.analysis_df, G.analysis_df, V.analysis_df)
     I.analysis_df.to_latex("i_analysis_latex.txt")
 
+def random():
+    D = Vote()
+    VideoScripts.show_bins(data=D, bin_numbers=list(range(1, 4)))
+    D = Iris()
+    VideoScripts.show_trained_model(D, 11, 1, 0)
+
 
 if __name__ == '__main__':
-    D = Vote()
-    VideoScripts.show_bins(data = D, bin_numbers = list(range(1, 4)))
+    D = Iris()
+    VideoScripts.show_model_count(D, 11, 1, 0)
+
 
     
 
