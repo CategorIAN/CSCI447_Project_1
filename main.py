@@ -8,20 +8,19 @@ from os.path import exists
 import VideoScripts
 
 def merge(*dfs):    
+    #merge all the dataframes
     merge_df = pd.concat(list(dfs)).reset_index(drop=True)
     merge_df.to_csv("merged.csv")
+    #summarize each of the dataframes grouped by the hyperparameters
     summary_df = merge_df.groupby(by=['Bin_Number', 'M_Value', 'Prob_Value'])[['Average']].agg('mean')
     summary_df.to_csv("summary.csv")
-    # print(summary_df.loc[summary_df['Average'] == summary_df['Average'].max()])
-
+    #find best hyperparameters for the datasets
     tuningdf = summary_df.loc[summary_df['Average'] == summary_df['Average'].max()]
     tuningdf.to_csv("tuningdf.csv")
-                    
-    merge_df.to_latex("merge_latex.txt")
-    tuningdf.to_latex("tuning_latex.txt")
 
-def ethanScript():
+if __name__ == '__main__':
     tuning = 10
+    #check to make sure if hyperparameters have been found yet or not
     if (exists("tuningdf.csv")):
         tuningdf = pd.read_csv("tuningdf.csv")
         starting_bin = tuningdf['Bin_Number'].iloc[0]
@@ -30,6 +29,7 @@ def ethanScript():
         starting_bin = 1
         m_val = 1
 
+    #test for each of the data sets
     I = Iris()
     I.test(tuning, starting_bin, m_val)
     S = SB()
@@ -41,14 +41,11 @@ def ethanScript():
     V = Vote()
     V.test(tuning, starting_bin, m_val)
     merge(I.analysis_df, S.analysis_df, C.analysis_df, G.analysis_df, V.analysis_df)
-    I.analysis_df.to_latex("i_analysis_latex.txt")
-
-# def random():
     
 
 
-
-if __name__ == '__main__':
+#video scripts that help show code
+def video_scripts():
     D = Iris()
     VideoScripts.show_bins(data=D, bin_numbers=list(range(1, 4)))
     VideoScripts.show_trained_model(D, 11, 1, 0)

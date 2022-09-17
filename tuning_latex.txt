@@ -1,8 +1,0 @@
-\begin{tabular}{lllr}
-\toprule
-   &    &          &   Average \\
-Bin\_Number & M\_Value & Prob\_Value &           \\
-\midrule
-11 & 23 & 0.000435 &  0.862202 \\
-\bottomrule
-\end{tabular}
