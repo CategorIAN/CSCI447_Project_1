@@ -5,6 +5,7 @@ from Glass import Glass
 from Vote import Vote
 import pandas as pd
 from os.path import exists
+import VideoScripts
 
 def merge(*dfs):    
     merge_df = pd.concat(list(dfs)).reset_index(drop=True)
@@ -19,18 +20,15 @@ def merge(*dfs):
     merge_df.to_latex("merge_latex.txt")
     tuningdf.to_latex("tuning_latex.txt")
 
-
-if __name__ == '__main__':
-    
+def ethanScript():
     tuning = 10
-    if(exists("tuningdf.csv")):
-        tuningdf = pd.read_csv("tuningdf.csv")       
+    if (exists("tuningdf.csv")):
+        tuningdf = pd.read_csv("tuningdf.csv")
         starting_bin = tuningdf['Bin_Number'].iloc[0]
         m_val = tuningdf['M_Value'].iloc[0]
     else:
         starting_bin = 1
         m_val = 1
-    
 
     I = Iris()
     I.test(tuning, starting_bin, m_val)
@@ -44,4 +42,12 @@ if __name__ == '__main__':
     V.test(tuning, starting_bin, m_val)
     merge(I.analysis_df, S.analysis_df, C.analysis_df, G.analysis_df, V.analysis_df)
     I.analysis_df.to_latex("i_analysis_latex.txt")
+
+
+if __name__ == '__main__':
+    D = Vote()
+    VideoScripts.show_bins(data = D, bin_numbers = list(range(1, 4)))
+
+    
+
 

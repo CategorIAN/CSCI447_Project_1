@@ -87,7 +87,7 @@ class NaiveBayes:
         self.test_set = df.filter(items = test, axis = 0)
 
     #probability of the class
-    def getQ(self): 
+    def getQ(self):
         df = pd.DataFrame(self.train_set.groupby(by = ['Class'])['Class'].agg('count')).rename(columns =
                                                                                                {'Class': 'Count'})
         df['Q'] = df['Count'].apply(lambda x: x / self.train_set.shape[0])
